@@ -28,7 +28,7 @@ _distro=`more /etc/redhat-release | tr '[A-Z]' '[a-z]' | cut -d' ' -f1`  # ex: c
 _os_ver_arch="${_distro}-${_release}"
 
 _user_key="ssh-rsa PlaceHolderText p@MacBook.local"
-
+_user_ansible_key="ssh-rsa Ansible PlaceHolderText p@MacBook.local"
 
 # update /etc/skel/.vimrc
 function func_skel_vim(){
@@ -152,7 +152,9 @@ function func_adduser(){
   mkdir /home/${_user}/.ssh 2> /dev/null
   touch /home/${_user}/.ssh/authorized_keys 2> /dev/null
 
-  if grep --quiet '^ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDQfYTUuey' /home/${_user}/.ssh/authorized_keys; then
+  _user_key_snip=${_user_key:20:20}
+
+  if grep --quiet "${_user_key_snip}" /home/${_user}/.ssh/authorized_keys; then
     echo -e "\n# SSH key for ${_user} is already in /home/${_user}/.ssh/authorized_keys.\n" | tee -a /${_logger}
   else
     echo "${_user_key}" >> /home/${_user}/.ssh/authorized_keys && echo -e "Added ${_user} and gave sudo privilege." | tee -a /${_logger}
@@ -171,9 +173,10 @@ function func_adduser_test(){
   usermod -a -G wheel ${_user_test} 2> /dev/null
   mkdir /home/${_user_test}/.ssh 2> /dev/null
   touch /home/${_user_test}/.ssh/authorized_keys 2> /dev/null
-  #passwd $_user_test
+  
+  _user_key_snip=${_user_key:20:20}
 
-  if grep --quiet '^ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDQfYTUuey' /home/${_user_test}/.ssh/authorized_keys; then
+  if grep --quiet "${_user_key_snip}" /home/${_user_test}/.ssh/authorized_keys; then
     echo -e "\n# SSH key for ${_user_test} is already in /home/${_user_test}/.ssh/authorized_keys.\n" | tee -a /${_logger}
   else
     echo "${_user_key}" >> /home/${_user_test}/.ssh/authorized_keys && echo -e "Added ${_user_test} and gave sudo privilege." | tee -a /${_logger}
@@ -200,10 +203,12 @@ function func_ansible() {
   mkdir /home/${_user_ansible}/.ssh 2> /dev/null
   touch /home/${_user_ansible}/.ssh/authorized_keys 2> /dev/null
 
-  if grep --quiet '^ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDFc' /home/${_user_ansible}/.ssh/authorized_keys; then
+  _user_ansible_key_snip=${_user_ansible_key:20:20}
+
+  if grep --quiet "${_user_ansible_key_snip}" /home/${_user_ansible}/.ssh/authorized_keys; then
     echo -e "\n# public key for ${_user_ansible} is already in /home/${_user_ansible}/.ssh/authorized_keys." | tee -a /${_logger}
   else
-    echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDFcFcKOi8yNuE05UJbe32UnXL0SMdthHlbhGrH+gAqH2D+2SgrBj0ynOg+oMIIiJntjSju84tTOYPs/snh8O3qYzXEB4ET8qupf7azyjhzJIR9PhO8W78r0rzhFBWyrhdQ4UpaHVElCth9LMS1YSVnc4zw2jSbuW1ZEENYLU4ieARuqVU+sdH//WfZyUGKu6bWATpGMqKs/3teJP7+S+4gcpjDQtbX7m4oEM6gr0VkModUuRp4KSJuT/okxQuTt2z4/U+yygM/F91sV38Z87L6RkYL9Zzzt4qR0kXVCAO3YfuOPkncfsvURkZdP6mTICX11Vc49zrDfRQx91iLDQRf paul@Mac-542696cebd0b" >> /home/${_user_ansible}/.ssh/authorized_keys && echo -e "Ansible client installed." | tee -a /${_logger}
+    echo "${_user_ansible_key}" >> /home/${_user_ansible}/.ssh/authorized_keys && echo -e "Ansible client installed." | tee -a /${_logger}
   fi
 
   chmod 755 /home/${_user_ansible}
@@ -256,7 +261,7 @@ function func_selfDelete(){
 
 
 func_log
-# func_firewalld
+func_firewalld
 func_skel_vim
 func_root_vim
 func_utc
